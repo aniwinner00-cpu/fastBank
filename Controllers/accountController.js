@@ -25,20 +25,21 @@ const getAccountBalance = async (req, res) => {
             accountNumber,
             token
         );
+        console.log("NIBSS BALANCE RESPONSE:", balanceResponse);
 
-        if (!balanceResponse.success) {
-            return res.status(400).json({
-                message: balanceResponse.message
-            });
-        }
+        if (!balanceResponse || balanceResponse.balance === undefined) {
+    return res.status(400).json({
+        message: "Failed to fetch balance"
+    });
+}
 
         // Sync local balance
-        account.balance = balanceResponse.data.balance;
+        account.balance = balanceResponse.balance;
         await account.save();
 
         return res.status(200).json({
             message: "Balance retrieved successfully",
-            data: balanceResponse.data
+            data: balanceResponse
         });
 
     } catch (error) {
@@ -60,15 +61,15 @@ const nameEnquiry = async (req, res) => {
             token
         );
 
-        if (!enquiryResponse.success) {
-            return res.status(400).json({
-                message: enquiryResponse.message
-            });
-        }
+       if (!enquiryResponse || !enquiryResponse.accountNumber) {
+    return res.status(400).json({
+        message: "Name enquiry failed"
+    });
+}
 
         return res.status(200).json({
             message: "Name enquiry successful",
-            data: enquiryResponse.data
+            data: enquiryResponse
         });
 
     } catch (error) {

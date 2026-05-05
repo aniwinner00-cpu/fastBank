@@ -60,6 +60,7 @@ const checkBalance = async (accountNumber, token) => {
             }
         }
     );
+           console.log("NIBSS BALANCE RESPONSE:", response.data); 
 
     return response.data;
 };
@@ -74,20 +75,25 @@ const nameEnquiry = async (accountNumber, token) => {
         }
     );
 
+
+    console.log("NIBSS NAME ENQUIRY RESPONSE:", response.data);
+
     return response.data;
 };
 
 //transfer funds 
-const transferFunds = async (from, to, amount, token) => {
+const transferFunds = async (from, to, amount, bankCode, token) => {
     const response = await axios.post(
         `https://nibssbyphoenix.onrender.com/api/transfer`,
-        { from, to, amount },
+        { from, to, amount, bankCode },
         {
             headers: {
                 Authorization: `Bearer ${token}`
             }
         }
     );
+
+    console.log("NIBSS TRANSFER RESPONSE:", response.data);
 
     return response.data;
 };

@@ -115,7 +115,7 @@ const registerUser = async (req, res) => {
 await Account.create({
     userId: user._id,
     accountNumber: accountData.account.accountNumber,
-    accountName: `${user.firstName} ${user.lastName}`,
+    accountName: accountData.account.accountName,
     bankCode: accountData.account.bankCode,
     bankName: "Fast Bank Limited",
     balance: accountData.account.balance || 0,

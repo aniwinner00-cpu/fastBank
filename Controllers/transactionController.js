@@ -5,6 +5,7 @@ const nibssService = require("../services/nibssService");
 
 // Transfer funds
 const transferFunds = async (req, res) => {
+    
     try {
         const {
             senderAccountNumber,
@@ -42,11 +43,21 @@ const transferFunds = async (req, res) => {
             token
         );
 
-        if (!enquiry.success) {
+        console.log("ENQUIRY FULL RESPONSE:", enquiry);
+
+        if (!enquiry || !enquiry.accountNumber) {
             return res.status(400).json({
                 message: enquiry.message || "Receiver account validation failed"
             });
         }
+      
+        console.log("BANK_CODE:", process.env.BANK_CODE);
+        console.log("RECEIVER BANK CODE:", receiverBankCode);
+
+        const transactionType =
+        String(receiverBankCode) === String(process.env.BANK_CODE)
+        ? "intrabank"
+        : "interbank";
 
         // 5. Create Local Pending Transaction
         // Note: We use a temporary UUID first
@@ -55,7 +66,7 @@ const transferFunds = async (req, res) => {
             senderAccountNumber,
             receiverAccountNumber,
             receiverBankCode,
-            receiverName: enquiry.data.accountName,
+            receiverName: enquiry.accountName,
             amount,
             transactionType:
                 receiverBankCode === process.env.BANK_CODE
@@ -71,22 +82,23 @@ const transferFunds = async (req, res) => {
             senderAccountNumber,
             receiverAccountNumber,
             amount,
+            receiverBankCode,
             token
         );
 
         // 7. Handle NIBSS Failure
-        if (!transferResponse.success) {
-            transaction.status = "failed";
-            await transaction.save();
+       if (!transferResponse || transferResponse.status !== "SUCCESS") {
+        transaction.status = "failed";
+        await transaction.save();
 
-            return res.status(400).json({
-                message: transferResponse.message || "Transfer failed at NIBSS"
-            });
-        }
+         return res.status(400).json({
+         message: transferResponse.message || "Transfer failed at NIBSS"
+         });
+         }
 
         // 8. Handle NIBSS Success
         // Update the reference to the ACTUAL NIBSS ID so Transaction Status Query (TSQ) works
-        transaction.transactionReference = transferResponse.data.transactionId;
+        transaction.transactionReference = transferResponse.reference;
         transaction.status = "successful";
         await transaction.save();
 
